@@ -16,6 +16,32 @@ float sdf_box( vec3 pos, vec3 hsize )
   return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
 }
 
+// Here, I tried to analytically find the nearest *small shpere* from pos. It was too complicated and I chose another way.
+#define PI 3.14159265358
+float round(float x){ 
+  float tmp = fract(x);
+  if (tmp > 0.5f){
+    return ceil(x);
+  }
+  return floor(x);
+}
+
+// Ctrl+CV from IQ's website!!!!
+float sdDeathStar( in vec3 p2, in float ra, float rb, in float d ) // d is on x axis.
+{ 
+  // sampling independent computations (only depend on shape)
+  float a = (ra*ra - rb*rb + d*d)/(2.0*d);
+  float b = sqrt(max(ra*ra-a*a,0.0));
+	
+  // sampling dependant computations
+  vec2 p = vec2( p2.x, length(p2.yz) );
+  if( p.x*b-p.y*a > d*max(b-p.y,0.0) )
+    return length(p-vec2(a,b));
+  else
+    return max( (length(p          )-ra),
+               -(length(p-vec2(d,0))-rb));
+}
+
 // Definition of singed distance funtion called from
 float SDF(vec3 pos)
 {
@@ -26,8 +52,59 @@ float SDF(vec3 pos)
   // Look Inigo Quilez's article for hints:
   // https://iquilezles.org/articles/distfunctions/
 
-  // for "problem2" the code below is not used.
-  return sdf_box(pos, vec3(0.1,0.2,0.3));
+  float dis = length(pos)-0.8;
+  dis = -dis;
+
+  float stepp = 0.2;
+  float xx = -0.81;
+  float yy = -0.82;
+  float zz = -0.83;
+
+  // test: inverse + union = intersect
+  /*
+  dis = -dis;
+  float dis2 = length(pos-vec3(0.8,0.0,0.0))-0.12;
+  dis2 = -dis2;
+  float dis3 = min(dis,dis2);
+  return -dis3; */
+
+  /////////////////// MY IDEA: /////////////////////
+  // final result = Inverse(
+  //                    Union(
+  //                          Inverse(deathstar1),Inverse(deathstar2),Inverse(deathstar3)...
+  //                          )
+  //                       ).
+  // To realize these 2 operations,
+  // Union(Shape1, Shape2)=min(SDF1,SDF2), and Inverse(Shape1)= -1*SDF(Shape1).
+  
+  xx = 0.01;
+  zz = 0.01;
+  yy = 0.01;
+  while (xx <= 0.81){
+    zz = 0.01;
+    yy = 0.01;
+    while (zz <= 0.81){
+      yy = 0.01;
+      while (yy <= 0.81){
+        float theta = atan(-zz/yy);
+        float a = atan((sin(theta)*zz-cos(theta)*yy) / xx);
+
+        // rotate to x axis, because deathstar function was implemented in x axis for simplicity.
+        vec3 v1 = vec3(cos(a),              sin(a),               0);
+        vec3 v2 = vec3(-sin(a)*cos(theta),  cos(a)*cos(theta),    sin(theta));
+        vec3 v3 = vec3(sin(a)*sin(theta),   -cos(a)*sin(theta),   cos(theta));
+        mat3 toxaxis = mat3(v1,v2,v3); // columns
+
+        float tmpdis1 = -sdDeathStar(toxaxis*abs(pos), 0.8, 0.12, length(vec3(xx,yy,zz))); // one small sphere
+        dis = min(dis, tmpdis1); // 
+        yy = yy + 0.2;
+      }
+      zz = zz + 0.2;
+    }
+    xx = xx + 0.2;
+  }
+  return -dis;
+
 }
 
 void main()

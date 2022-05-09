@@ -1,0 +1,39 @@
+
+/*
+  pos = abs(pos); // asymmetric
+  float phi = atan(pos.y/pos.x); // angle between pos and x axis
+  float rxy = sqrt(pos.y*pos.y+pos.x*pos.x);
+  float theta = atan(pos.z/rxy); // angle between pos and xy plane
+
+  float nearest_p = round(phi*2)/2;
+  float nearest_t = round(theta*2)/2; // round to 0.5rad. the distance between small balls are roughly 0.2
+
+  vec3 big_ball_surf = vec3(0.8*cos(nearest_p),0.8*sin(nearest_p),0.8*sin(nearest_t));
+  float dis = length(pos-big_ball_surf)-0.12f;*/
+/*
+  float phi = 0;
+  float theta = -0.5*PI;  
+  float dis1 = length(pos)-0.8;
+  float dis2 = length(pos - vec3(0.7,0.0,0.0)) - 0.2;
+  return min(dis1, dis2);
+  float min_dis = length(pos)-0.8;
+  if (min_dis<0)return min_dis;
+
+  float stepp = 0.2;
+  while (phi < 2 * PI){
+    while (theta < 0.5 * PI){
+      //vec3 small_ball_center = vec3(0.8*cos(phi),0.8*sin(phi),0.8*sin(theta));
+      vec3 small_ball_center = vec3(0.8,0.0,0.0);
+      float tmp = length(pos-small_ball_center) - 0.12;
+      if (tmp < min_dis){
+        min_dis = tmp;
+      }
+      theta = theta + stepp;
+    }
+    phi = phi + stepp;
+  }
+*/
+  return min_dis;
+  return length(pos)-1; // rad
+  // for "problem2" the code below is not used.
+  return sdf_box(pos, vec3(0.3,0.3,0.3));
