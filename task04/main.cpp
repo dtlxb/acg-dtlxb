@@ -29,6 +29,8 @@
 
 namespace dfm2 = delfem2;
 
+#define PI 3.14159265359
+
 // ----------------------------------------
 
 /*! function to compute "weight" and "direction"
@@ -48,10 +50,34 @@ double SamplingHemisphere(
   // hint3: for longitude use inverse sampling method to achieve cosine weighted sample.
   // hint4: first assume z is the up in the polar coordinate, then rotate the sampled direction such that "z" will be up.
   // write some codes below (5-10 lines)
+  
+  double lati = dfm2::MyERand48<double>(Xi); // phi
+  double longi = dfm2::MyERand48<double>(Xi); // theta
+
+  longi = std::sqrt(longi);
+  longi = std::acos(longi); // resample longi for cos inverse 
+
+  double theta = 0.5*PI*longi;
+  double phi = 2*PI*lati;
+
+  //double x = std::cos(theta)*std::cos(phi);
+  //double y = std::cos(theta)*std::sin(phi);
+  //double z = std::sin(theta);
+
+  std::vector<double> tmp{0,0,1};
+
+  dfm2::Rotate_Points3<double>(tmp,0,0.5*PI-theta,phi);
+
+  dir[0] = tmp[0];
+  dir[1] = tmp[1];
+  dir[2] = tmp[2];
+  
+  return 1;
 
 
   // below: naive implementation to "uniformly" sample hemisphere using "rejection sampling"
   // to not be used for the "problem2" in the assignment
+  /*
   for(int i=0;i<10;++i) { // 10 is a magic number
     const auto d0 = dfm2::MyERand48<double>(Xi);  // you can sample uniform distribution [0,1] with this function
     const auto d1 = dfm2::MyERand48<double>(Xi);
@@ -71,6 +97,8 @@ double SamplingHemisphere(
     return cos*2;  // (coefficient=1/M_PI) * (area_of_hemisphere=M_PI*2) = 2
   }
   return 0;
+  */
+  
 }
 
 double SampleAmbientOcclusion(
