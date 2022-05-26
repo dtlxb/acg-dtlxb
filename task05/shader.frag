@@ -17,7 +17,7 @@ vec3[ncolormap] colormap = vec3[](
   vec3(0.5, 0.0, 0.0) );
 
 // evaluate n-degree polynominal at x
-float EvaluatePolynomial(
+float EvaluatePolynomial( // up to x^6
   float x,
   const float a[6],
   int n) {
@@ -30,8 +30,8 @@ float EvaluatePolynomial(
 
 // function to compute Sturm sequence from coefficients of quintic polynominal
 void SturmSequenceOfPolynomial(
-  inout float strum[6*6],
-  const float coe[6]) {
+  inout float strum[6*6], // 6 x^6 polynominals
+  const float coe[6]) { // f0
   const int n = 6;
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
@@ -79,7 +79,7 @@ void SturmSequenceOfPolynomial(
 }
 
 // function to compute sturm number at `x` using Sturm sequence
-int SturmNumber(
+int SturmNumber( // i.e. number of sign changes?
   float x,
   const float s[36]) {
   const int n = 6;
@@ -168,15 +168,15 @@ void main()
   };
   range[64] stack;
   int nstack = 1;
-  stack[0] = range(0., 1., SturmNumber(0.,sturm_seq), SturmNumber(1.,sturm_seq)); // initial range
-  while(nstack>0){ // finding roots using bisection method
+  stack[0] = range(0., 1., SturmNumber(0.,sturm_seq), SturmNumber(1.,sturm_seq)); // initial range // range is for t: [0,1]
+  while(nstack>0){ // finding roots using bisection method 
     nstack = nstack-1;
     float lower = stack[nstack].lower;
     float upper = stack[nstack].upper;
     float middle = (lower + upper)*0.5;
     if( upper - lower < 0.0001 ){
       vec2 pm = EvaluateBezier(middle,bezier);
-      Distance = min(Distance,length(pm));
+      Distance = min(Distance,length(pm)); // select one minimum even if there're multiple roots.
       continue;
     }
     int snl = stack[nstack].sturm_lower;
@@ -185,6 +185,14 @@ void main()
     // Problem2 of the assignment
     // write some code to complete the implementation of bisection method
     // around 10 lines of code should be enough
+    else {
+      // stack dfs
+      int snm = SturmNumber(middle,sturm_seq);
+      stack[nstack]=range(lower,middle,snl,snm);
+      stack[nstack+1]=range(middle,upper,snm,snu);
+      nstack = nstack+2;
+    }
+
   }
 
 
