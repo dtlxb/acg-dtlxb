@@ -39,7 +39,8 @@ Write code at `line #129` to implement Laplacian mesh deformation.
 
 Save the screenshot image overwriting `task08/problem2.png`
 
-![problem2](problem2.png)
+![problem2](problem2-1.png)
+![problem2](problem2-2.png)
 
 Look at Eigen's reference if you are interested in sparse linear solver: 
 - [Sparse linear algebra

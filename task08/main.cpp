@@ -92,14 +92,14 @@ int main() {
   // write a code to make a matrix "sparse" that is the coefficient matrix of the linear system of the laplacian mesh deformation
   // the "sparse" will be made from "matrix_laplacian", "matrix_penalty", "penalty_coeff"
   // to do the assignment comment out below:
-  /*
+  
   {
-    const Eigen::SparseMatrix<double> sparse = // write something here
+    const Eigen::SparseMatrix<double> sparse = matrix_laplacian + penalty_coeff*matrix_penalty; // write something here
     // below is the code to LU decompose sparse. Don't change
     solver.analyzePattern(sparse); // symbolic factorization
     solver.factorize(sparse); // numerical factorization
   }
-  */
+  
 
   // opengl starts here
   delfem2::glfw::CViewer3 viewer(2);
@@ -116,12 +116,16 @@ int main() {
     for(unsigned int ip : fix_ear){ vtx_xyz_def(ip,0) += 0.5*sin(1*time+0); } // move points at ear
     for(unsigned int ip : fix_back){ vtx_xyz_def(ip,1) += 0.3*sin(2*time+0); } // move points at back
 
+    // penalty*thisdef = fixed Us(U is the name of fixed positions, in the 2004 paper)
+    // dW/dP = L * (Pdef - Pref) + coeff * Penalty * (Pdef - U), which = 0
+    // (L + penalty) * laterdef = L * ref + penalty * thisdef, solve laterdef. 
+
     // write some codes (about 2 lines) below to compute "vtx_xyz_def" that is smoothly deformed "vtx_xyz_ref"
     // The "vtx_xyz_def" satisfies fixed constraints using penalty method.
     // "vtx_xyz_ref", "vtx_xyz_def", "matrix_laplacian", "penalty_coeff", "matrix_penalt", and "solver" are used here.
 
-    // Eigen::MatrixXd rhs0 = // write some code to compute rhs vector
-    // vtx_xyz_def = solver.solve(rhs0);
+    Eigen::MatrixXd rhs0 = matrix_laplacian * vtx_xyz_ref + penalty_coeff * matrix_penalty * vtx_xyz_def;// write some code to compute rhs vector
+    vtx_xyz_def = solver.solve(rhs0);
 
     // --------------------
     // below: visualization (don't change)
